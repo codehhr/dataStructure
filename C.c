@@ -1,75 +1,74 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <malloc.h> //¶¯Ì¬ÄÚ´æ¹ÜÀí
+#include <malloc.h> //åŠ¨æ€å†…å­˜ç®¡ç†
 #include <string.h>
-#define SIZE 200                                                                 //¶¨Òå×î³¤¶ÁÈ¡200ĞĞ
-int readFile(char *container[], int size, char *fileName);                       //ÎÄ¼ş¶ÁÈë
-void freeContainer(char *container[], int *count);                               //ÊÍ·ÅÎÄ¼ş¶ÁÈëµÄÄÚ´æ
-void showData(char *container[], int *count);                                    //ÏÔÊ¾Êı¾İ
-int findSimple(char *container[], int *count, char *value);                      //²éÕÒÊı¾İ
-void findData(char *container[], int *count);                                    //²éÕÒÊı¾İ·â×°
-int InsertSimple(char *container[], int size, int *count, int pos, char *value); //²åÈëÊı¾İ
-void InsertData(char *container[], int size, int *count, char *value);           //²åÈëÊı¾İ·â×°
-int DeleteSimple(char *container[], int *count, int pos);                        //É¾³ıÊı¾İ
-void DeleteData(char *container[], int *count);                                  //É¾³ıÊı¾İ·â×°
-int upDataSimple(char *container[], int *count, int pos, char *value);           //¸üĞÂÊı¾İ
-void UpData(char *container[], int *count, char *value);                         //¸üĞÂÊı¾İ·â×°
-void opration(char *container[], int *count);                                    //²Ù×÷
+#define SIZE 200                                                                 //å®šä¹‰æœ€é•¿è¯»å–200è¡Œ
+int readFile(char *container[], int size, char *fileName);                       //æ–‡ä»¶è¯»å…¥
+void freeContainer(char *container[], int *count);                               //é‡Šæ”¾æ–‡ä»¶è¯»å…¥çš„å†…å­˜
+void showData(char *container[], int *count);                                    //æ˜¾ç¤ºæ•°æ®
+int findSimple(char *container[], int *count, char *value);                      //æŸ¥æ‰¾æ•°æ®
+void findData(char *container[], int *count);                                    //æŸ¥æ‰¾æ•°æ®å°è£…
+int InsertSimple(char *container[], int size, int *count, int pos, char *value); //æ’å…¥æ•°æ®
+void InsertData(char *container[], int size, int *count, char *value);           //æ’å…¥æ•°æ®å°è£…
+int DeleteSimple(char *container[], int *count, int pos);                        //åˆ é™¤æ•°æ®
+void DeleteData(char *container[], int *count);                                  //åˆ é™¤æ•°æ®å°è£…
+int upDataSimple(char *container[], int *count, int pos, char *value);           //æ›´æ–°æ•°æ®
+void UpData(char *container[], int *count, char *value);                         //æ›´æ–°æ•°æ®å°è£…
+void opration(char *container[], int *count);                                    //æ“ä½œ
 
 /*
-    ÊµÏÖÎÄ¼ş¶ÁÈë£¬ÎÄ¼şËÑË÷
+    å®ç°æ–‡ä»¶è¯»å…¥ï¼Œæ–‡ä»¶æœç´¢
 */
 int main()
 {
     int count;
     char *container[SIZE];
     //input your code
-    //¼ÓÔØÊı¾İ²¢·µ»ØÓĞĞ§ĞĞÊı
-    count = readFile(container, SIZE, "C:\\Users\\18719\\Desktop\\DS1\\2016List2.csv");
-    if (count != -1) //¶ÁÈ¡³É¹¦£¬½øÒ»²½²Ù×÷
+    //åŠ è½½æ•°æ®å¹¶è¿”å›æœ‰æ•ˆè¡Œæ•°
+    count = readFile(container, SIZE, "C:\\Users\\18719\\Desktop\\dataStructure\\2016List2.csv");
+    if (count != -1) //è¯»å–æˆåŠŸï¼Œè¿›ä¸€æ­¥æ“ä½œ
     {
-        //Çå³ıÊäÈëÊä³öÁ÷
+        //æ¸…é™¤è¾“å…¥è¾“å‡ºæµ
         _flushall();
-        //²Ù×÷Êı¾İ
+        //æ“ä½œæ•°æ®
         opration(container, &count);
-        //ÊÍ·ÅÄÚ´æ¿Õ¼ä
+        //é‡Šæ”¾å†…å­˜ç©ºé—´
         freeContainer(container, &count);
     }
     return 0;
 }
 
 /*
-    ¹¦ÄÜ:ÎÄ¼ş¶ÁÈë
-    ²ÎÊıÁĞ±í:
-            container:¶ÁÈëÎÄ¼şµÄÈİÆ÷£¬Ò»¸öÊı×é£¬Êı×éÖĞ±£´æ×ÅÖ¸ÏòÃ¿Ò»ĞĞµÄÄÚ´æµØÖ·
-            size:containerÈİÆ÷µÄ×î´óÈİÁ¿
-            fileName:ÎÄ¼şÂ·¾¶
-    ·µ»ØÖµ:¶ÁÈ¡Õı³£:¶ÁÈ¡µÄÓĞĞ§ĞĞÊıÊıÁ¿ ¶ÁÈ¡Ê§°Ü:-1
-
+    åŠŸèƒ½:æ–‡ä»¶è¯»å…¥
+    å‚æ•°åˆ—è¡¨:
+            container:è¯»å…¥æ–‡ä»¶çš„å®¹å™¨ï¼Œä¸€ä¸ªæ•°ç»„ï¼Œæ•°ç»„ä¸­ä¿å­˜ç€æŒ‡å‘æ¯ä¸€è¡Œçš„å†…å­˜åœ°å€
+            size:containerå®¹å™¨çš„æœ€å¤§å®¹é‡
+            fileName:æ–‡ä»¶è·¯å¾„
+    è¿”å›å€¼:è¯»å–æ­£å¸¸:è¯»å–çš„æœ‰æ•ˆè¡Œæ•°æ•°é‡ è¯»å–å¤±è´¥:-1
 */
 int readFile(char *container[], int size, char *fileName)
 {
     int c = 0;
     char buf[1024];
-    //´ò¿ªÎÄ¼şÊäÈëÁ÷
+    //æ‰“å¼€æ–‡ä»¶è¾“å…¥æµ
     FILE *fp = fopen(fileName, "r");
-    //ÎÄ¼ş´ò¿ªÊ§°Ü£¬·µ»Ø 0²¢ÌáÊ¾
+    //æ–‡ä»¶æ‰“å¼€å¤±è´¥ï¼Œè¿”å› 0å¹¶æç¤º
     if (fp == NULL)
     {
-        printf("ÎÄ¼ş %s ´ò¿ªÊ§°Ü£¬Çë¼ì²éÎÄ¼şÂ·¾¶\n", fileName);
+        printf("æ–‡ä»¶ %s æ‰“å¼€å¤±è´¥ï¼Œè¯·æ£€æŸ¥æ–‡ä»¶è·¯å¾„\n", fileName);
         return -1;
     }
-    //½«Á÷°´ĞĞ¶ÁÈëbufÖĞ£¬ÔÙ½«bufĞ´ÈëcontainerÈİÆ÷ÖĞ
+    //å°†æµæŒ‰è¡Œè¯»å…¥bufä¸­ï¼Œå†å°†bufå†™å…¥containerå®¹å™¨ä¸­
     while (c < size && !feof(fp))
     {
-        //ÇĞÆ¬
+        //åˆ‡ç‰‡
         fgets(buf, 1024, fp);
-        //È¥µô»»ĞĞ·û
+        //å»æ‰æ¢è¡Œç¬¦
         if (buf[strlen(buf) - 1] == 0x00000A)
         {
             buf[strlen(buf) - 1] = '\0';
         }
-        //¶ÁÈ¡ÓĞĞ§ĞĞ
+        //è¯»å–æœ‰æ•ˆè¡Œ
         if (buf[0] != '\0')
         {
             container[c] = (char *)malloc(strlen(buf) + 1);
@@ -84,11 +83,11 @@ int readFile(char *container[], int size, char *fileName)
     return c;
 }
 /*
-    ¹¦ÄÜ:ÊÍ·ÅÎÄ¼ş¶ÁÈëÄÚ´æ
-    ²ÎÊı:
-        container:ĞèÒªÊÍ·ÅÄÚ´æµÄÊı×é
-        c:ÓĞĞ§ĞĞÊı
-    ·µ»ØÖµ:ÎŞ
+    åŠŸèƒ½:é‡Šæ”¾æ–‡ä»¶è¯»å…¥å†…å­˜
+    å‚æ•°:
+        container:éœ€è¦é‡Šæ”¾å†…å­˜çš„æ•°ç»„
+        c:æœ‰æ•ˆè¡Œæ•°
+    è¿”å›å€¼:æ— 
 */
 void freeContainer(char *container[], int *count)
 {
@@ -102,11 +101,11 @@ void freeContainer(char *container[], int *count)
 }
 
 /*
-    ¹¦ÄÜ:ÏÔÊ¾
-    ²ÎÊı:
-        container:´æ·ÅÊı¾İµÄÊı×é
-        count: ÓĞĞ§ĞĞÊı
-    ·µ»ØÖµ:ÎŞ
+    åŠŸèƒ½:æ˜¾ç¤º
+    å‚æ•°:
+        container:å­˜æ”¾æ•°æ®çš„æ•°ç»„
+        count: æœ‰æ•ˆè¡Œæ•°
+    è¿”å›å€¼:æ— 
 */
 void showData(char *container[], int *count)
 {
@@ -118,12 +117,12 @@ void showData(char *container[], int *count)
     }
 }
 /*
-    ¹¦ÄÜ:Æ¥Åä²éÕÒÄÚÈİ
-    ²ÎÊı:
-        container:´æ·ÅÊı¾İµÄÊı×é
-        count: ÓĞĞ§ĞĞÊı
-        value:Òª²éÕÒµÄÖµ
-    ·µ»ØÖµ:0:²éÕÒÊ§°Ü£¬´óÓÚ0·µ»Ø²éÕÒµ½µÄÔÚµÚ¼¸ĞĞ
+    åŠŸèƒ½:åŒ¹é…æŸ¥æ‰¾å†…å®¹
+    å‚æ•°:
+        container:å­˜æ”¾æ•°æ®çš„æ•°ç»„
+        count: æœ‰æ•ˆè¡Œæ•°
+        value:è¦æŸ¥æ‰¾çš„å€¼
+    è¿”å›å€¼:0:æŸ¥æ‰¾å¤±è´¥ï¼Œå¤§äº0è¿”å›æŸ¥æ‰¾åˆ°çš„åœ¨ç¬¬å‡ è¡Œ
 */
 int findSimple(char *container[], int *count, char *value)
 {
@@ -132,7 +131,7 @@ int findSimple(char *container[], int *count, char *value)
 
     while (j < *count)
     {
-        p = strstr(container[j], value); //·µ»ØvalueÄÚÈİµ½Õû¸öÄÚÈİ½áÊøµÄÄÚÈİ
+        p = strstr(container[j], value); //è¿”å›valueå†…å®¹åˆ°æ•´ä¸ªå†…å®¹ç»“æŸçš„å†…å®¹
         if (p != NULL)
         {
             return j + 1;
@@ -142,55 +141,54 @@ int findSimple(char *container[], int *count, char *value)
     return 0;
 }
 /*
-    ¹¦ÄÜ:²éÕÒ
-    ²ÎÊı:
-        container:´æ·ÅÊı¾İµÄÊı×é
-        count:ÓĞĞ§ĞĞÊı
-    ·µ»ØÖµ:ÎŞ
+    åŠŸèƒ½:æŸ¥æ‰¾
+    å‚æ•°:
+        container:å­˜æ”¾æ•°æ®çš„æ•°ç»„
+        count:æœ‰æ•ˆè¡Œæ•°
+    è¿”å›å€¼:æ— 
 */
 void findData(char *container[], int *count)
 {
     char str[100];
     int j;
-    printf("ÇëÊäÈëÒª²éÕÒµÄÄÚÈİ:");
+    printf("è¯·è¾“å…¥è¦æŸ¥æ‰¾çš„å†…å®¹:");
     scanf("%s", str);
     j = findSimple(container, count, str);
     if (j > 0)
     {
-        printf("²éÕÒ³É¹¦:Î»ÖÃ:%d ÄÚÈİ:%s\n", j, container[j - 1]);
+        printf("æŸ¥æ‰¾æˆåŠŸ:ä½ç½®:%d å†…å®¹:%s\n", j, container[j - 1]);
     }
     else
     {
-        printf("²éÕÒÊı¾İÊ§°Ü\n");
+        printf("æŸ¥æ‰¾æ•°æ®å¤±è´¥\n");
     }
 }
 
 /*
-    ¹¦ÄÜ:²åÈë
-    ²ÎÊı:
-        container:´æ´¢Êı×é
-        size:Êı×é×î´ó³¤¶È
-        count:ÓĞĞ§ĞĞÊı
-        pos:Òª²åÈëµÄÎ»ÖÃ(ĞĞ)
-        value:Òª²åÈëµÄÄÚÈİ
-    ·µ»ØÖµ:0:²åÈëÊ§°Ü 1:³É¹¦
-
+    åŠŸèƒ½:æ’å…¥
+    å‚æ•°:
+        container:å­˜å‚¨æ•°ç»„
+        size:æ•°ç»„æœ€å¤§é•¿åº¦
+        count:æœ‰æ•ˆè¡Œæ•°
+        pos:è¦æ’å…¥çš„ä½ç½®(è¡Œ)
+        value:è¦æ’å…¥çš„å†…å®¹
+    è¿”å›å€¼:0:æ’å…¥å¤±è´¥ 1:æˆåŠŸ
 */
 int InsertSimple(char *container[], int size, int *count, int pos, char *value)
 {
-    int c = *count; //½«ÓĞĞ§Öµ¸´ÖÆÒ»·İ
+    int c = *count; //å°†æœ‰æ•ˆå€¼å¤åˆ¶ä¸€ä»½
 
     while (1)
     {
-        //ÅĞ¶ÏÊÇ·ñ¿ÉÒÔ¼ÌĞø²åÈë
+        //åˆ¤æ–­æ˜¯å¦å¯ä»¥ç»§ç»­æ’å…¥
         if (c >= size)
         {
-            printf("ÈİÆ÷ÒÑÂú£¬²»¿É¼ÌĞø²åÈë\n");
+            printf("å®¹å™¨å·²æ»¡ï¼Œä¸å¯ç»§ç»­æ’å…¥\n");
             return 0;
         }
         else
         {
-            container[c] = container[c - 1]; //½«Êı×é×îºóÒ»¸öÔªËØÏòºóÒÆ¶¯Ò»Î»  ÕâÀïÓ¦¸ÃÈÃÖµÒÆ¶¯£¬µØÖ·²»Ó¦¸ÃÒÆ¶¯
+            container[c] = container[c - 1]; //å°†æ•°ç»„æœ€åä¸€ä¸ªå…ƒç´ å‘åç§»åŠ¨ä¸€ä½  è¿™é‡Œåº”è¯¥è®©å€¼ç§»åŠ¨ï¼Œåœ°å€ä¸åº”è¯¥ç§»åŠ¨
             if (c != pos - 1)
             {
                 c--;
@@ -204,29 +202,28 @@ int InsertSimple(char *container[], int size, int *count, int pos, char *value)
     }
 }
 /*
-    ¹¦ÄÜ:½øÒ»²½·â×°²åÈë
-    ²ÎÊı:
-        container:´æ´¢Êı×é
-        size:Êı×é×î´ó³¤¶È
-        count:ÓĞĞ§ĞĞÊı
-    ·µ»ØÖµ:ÎŞ
-
+    åŠŸèƒ½:è¿›ä¸€æ­¥å°è£…æ’å…¥
+    å‚æ•°:
+        container:å­˜å‚¨æ•°ç»„
+        size:æ•°ç»„æœ€å¤§é•¿åº¦
+        count:æœ‰æ•ˆè¡Œæ•°
+    è¿”å›å€¼:æ— 
 */
 void InsertData(char *container[], int size, int *count, char *value)
 {
     char str[100];
     int pos;
     int result;
-    printf("ÇëÊäÈëÒª²åÈëµÄÄÚÈİ:");
+    printf("è¯·è¾“å…¥è¦æ’å…¥çš„å†…å®¹:");
     scanf("%s", value);
     while (1)
     {
-        printf("ÇëÊäÈëÒª²åÈëµÄĞĞÊı:");
+        printf("è¯·è¾“å…¥è¦æ’å…¥çš„è¡Œæ•°:");
         scanf("%s", str);
         pos = atoi(str);
         if (pos <= 0 || pos > (*count + 1))
         {
-            printf("ÄúµÄÊäÈë²»ºÏ·¨(ĞÅ²»ĞÅÎÒÅú¶·Äã)\n");
+            printf("æ‚¨çš„è¾“å…¥ä¸åˆæ³•(ä¿¡ä¸ä¿¡æˆ‘æ‰¹æ–—ä½ )\n");
         }
         else
         {
@@ -236,23 +233,22 @@ void InsertData(char *container[], int size, int *count, char *value)
     result = InsertSimple(container, size, count, pos, value);
     if (result == 1)
     {
-        printf("²åÈë³É¹¦\n");
-        *count = *count + 1; //ĞĞÊı¼Ó1
+        printf("æ’å…¥æˆåŠŸ\n");
+        *count = *count + 1; //è¡Œæ•°åŠ 1
     }
     else
     {
-        printf("²åÈëÊ§°Ü\n");
+        printf("æ’å…¥å¤±è´¥\n");
     }
 }
 /*
-    ¹¦ÄÜ:É¾³ıÄ³Ò»ĞĞ
-    ²ÎÊı:
-        container:Êı¾İÈİÆ÷
-        count:ÓĞĞ§ĞĞÊı
-        value:Òª¸üĞÂµÄÖµ
-        pos:É¾³ıµÄÎ»ÖÃ
-    ·µ»ØÖµ:0:É¾³ıÊ§°Ü£¬1:É¾³ı³É¹¦
-
+    åŠŸèƒ½:åˆ é™¤æŸä¸€è¡Œ
+    å‚æ•°:
+        container:æ•°æ®å®¹å™¨
+        count:æœ‰æ•ˆè¡Œæ•°
+        value:è¦æ›´æ–°çš„å€¼
+        pos:åˆ é™¤çš„ä½ç½®
+    è¿”å›å€¼:0:åˆ é™¤å¤±è´¥ï¼Œ1:åˆ é™¤æˆåŠŸ
 */
 int DeleteSimple(char *container[], int *count, int pos)
 {
@@ -260,43 +256,43 @@ int DeleteSimple(char *container[], int *count, int pos)
     {
         if (0 == *count)
         {
-            printf("Êı¾İÒÑ¿Õ£¬ÎŞ·¨É¾³ı");
+            printf("æ•°æ®å·²ç©ºï¼Œæ— æ³•åˆ é™¤");
             return 0;
         }
-        //Èç¹ûÊÇ×îºóÒ»ĞĞ
+        //å¦‚æœæ˜¯æœ€åä¸€è¡Œ
         if (pos == *count)
         {
             container[pos - 1] = NULL;
-            return 1; //É¾³ı³É¹¦
+            return 1; //åˆ é™¤æˆåŠŸ
         }
         container[pos - 1] = container[pos];
         pos++;
         if (pos == *count)
         {
-            return 1; //É¾³ı³É¹¦
+            return 1; //åˆ é™¤æˆåŠŸ
         }
     }
 }
 /*
-    ¹¦ÄÜ:·â×°É¾³ı
-    ²ÎÊı:
-        container:Êı¾İÈİÆ÷
-        count:ÓĞĞ§ĞĞÊı
-    ·µ»ØÖµ:ÎŞ
+    åŠŸèƒ½:å°è£…åˆ é™¤
+    å‚æ•°:
+        container:æ•°æ®å®¹å™¨
+        count:æœ‰æ•ˆè¡Œæ•°
+    è¿”å›å€¼:æ— 
 */
 void DeleteData(char *container[], int *count)
 {
     char str[100];
-    int pos;    //É¾³ıÎ»ÖÃ£¨ĞĞ£©
-    int result; //É¾³ı·µ»ØÖµ½á¹û
+    int pos;    //åˆ é™¤ä½ç½®ï¼ˆè¡Œï¼‰
+    int result; //åˆ é™¤è¿”å›å€¼ç»“æœ
     while (1)
     {
-        printf("ÇëÊäÈëÒªÉ¾³ıµÄĞĞÊı:");
+        printf("è¯·è¾“å…¥è¦åˆ é™¤çš„è¡Œæ•°:");
         scanf("%s", str);
         pos = atoi(str);
         if (pos <= 0 || pos > *count)
         {
-            printf("ÄúµÄÊäÈë²»ºÏ·¨(ĞÅ²»ĞÅÎÒÅú¶·Äã)\n");
+            printf("æ‚¨çš„è¾“å…¥ä¸åˆæ³•(ä¿¡ä¸ä¿¡æˆ‘æ‰¹æ–—ä½ )\n");
         }
         else
         {
@@ -306,22 +302,22 @@ void DeleteData(char *container[], int *count)
     result = DeleteSimple(container, count, pos);
     if (result == 1)
     {
-        printf("É¾³ı³É¹¦\n");
+        printf("åˆ é™¤æˆåŠŸ\n");
         *count = *count - 1;
     }
     else
     {
-        printf("É¾³ıÊ§°Ü\n");
+        printf("åˆ é™¤å¤±è´¥\n");
     }
 }
 /*
-    ¹¦ÄÜ:¸üĞÂ
-    ²ÎÊı:
-        container:Êı¾İÈİÆ÷
-        count:ÓĞĞ§ĞĞÊı
-        pos:Òª¸úĞÂµÄĞĞÊı
-        value:¸üĞÂµÄÖµ
-    ·µ»ØÖµ:0:¸üĞÂÊ§°Ü 1:¸üĞÂ³É¹¦
+    åŠŸèƒ½:æ›´æ–°
+    å‚æ•°:
+        container:æ•°æ®å®¹å™¨
+        count:æœ‰æ•ˆè¡Œæ•°
+        pos:è¦è·Ÿæ–°çš„è¡Œæ•°
+        value:æ›´æ–°çš„å€¼
+    è¿”å›å€¼:0:æ›´æ–°å¤±è´¥ 1:æ›´æ–°æˆåŠŸ
 */
 int upDataSimple(char *container[], int *count, int pos, char *value)
 {
@@ -336,28 +332,28 @@ int upDataSimple(char *container[], int *count, int pos, char *value)
     }
 }
 /*
-    ¹¦ÄÜ:·â×°¸üĞÂ
-    ²ÎÊı:
-        container:Êı¾İÈİÆ÷
-        count:ÓĞĞ§ĞĞÊı
-        value:Òª¸üĞÂµÄÖµµÄÔİÊ±¿Õ¼ä
-    ·µ»ØÖµ:ÎŞ
+    åŠŸèƒ½:å°è£…æ›´æ–°
+    å‚æ•°:
+        container:æ•°æ®å®¹å™¨
+        count:æœ‰æ•ˆè¡Œæ•°
+        value:è¦æ›´æ–°çš„å€¼çš„æš‚æ—¶ç©ºé—´
+    è¿”å›å€¼:æ— 
 */
 void UpData(char *container[], int *count, char *value)
 {
     char str[100];
     int pos;
     int result;
-    printf("ÇëÊäÈëÒª¸üĞÂµÄÄÚÈİ:");
+    printf("è¯·è¾“å…¥è¦æ›´æ–°çš„å†…å®¹:");
     scanf("%s", value);
     while (1)
     {
-        printf("ÇëÊäÈëÒª¸üĞÂµÄĞĞÊı:");
+        printf("è¯·è¾“å…¥è¦æ›´æ–°çš„è¡Œæ•°:");
         scanf("%s", str);
         pos = atoi(str);
         if (pos <= 0 || pos > *count)
         {
-            printf("ÄúµÄÊäÈë²»ºÏ·¨(ĞÅ²»ĞÅÎÒÅú¶·Äã)\n");
+            printf("æ‚¨çš„è¾“å…¥ä¸åˆæ³•(ä¿¡ä¸ä¿¡æˆ‘æ‰¹æ–—ä½ )\n");
         }
         else
         {
@@ -367,51 +363,50 @@ void UpData(char *container[], int *count, char *value)
     result = upDataSimple(container, count, pos, value);
     if (result == 1)
     {
-        printf("¸üĞÂ³É¹¦\n");
+        printf("æ›´æ–°æˆåŠŸ\n");
     }
     else
     {
-        printf("¸üĞÂÊ§°Ü\n");
+        printf("æ›´æ–°å¤±è´¥\n");
     }
 }
 /*
-    ¹¦ÄÜ:²Ù×÷
-    ²ÎÊı:
-        container:Êı¾İÈİÆ÷
-        count:ÓĞĞ§ĞĞÊı
-
-    ·µ»ØÖµ:ÎŞ
+    åŠŸèƒ½:æ“ä½œ
+    å‚æ•°:
+        container:æ•°æ®å®¹å™¨
+        count:æœ‰æ•ˆè¡Œæ•°
+    è¿”å›å€¼:æ— 
 */
 void opration(char *container[], int *count)
 {
     _flushall();
     char op;
-    char value[200][100]; //Õâ¸ö±ØĞë¶¨ÒåÔÚÕâÀï£¬·ñÔòÆäËûº¯Êı·ÃÎÊÕâ¸öµØÖ·µÄÊ±ºò¾ÍÃ»·¨·ÃÎÊÁË,Ğ´³É¶şÎ¬Êı×éÕâÑù¾Í¿ÉÒÔ¶à´Î²åÈëÁË
-    int insertNum = 0;    //²åÈëµÄ´ÎÊı
+    char value[200][100]; //è¿™ä¸ªå¿…é¡»å®šä¹‰åœ¨è¿™é‡Œï¼Œå¦åˆ™å…¶ä»–å‡½æ•°è®¿é—®è¿™ä¸ªåœ°å€çš„æ—¶å€™å°±æ²¡æ³•è®¿é—®äº†,å†™æˆäºŒç»´æ•°ç»„è¿™æ ·å°±å¯ä»¥å¤šæ¬¡æ’å…¥äº†
+    int insertNum = 0;    //æ’å…¥çš„æ¬¡æ•°
     char updata[200][100];
     int updataNum = 0;
 
     printf("\n");
-    printf("²Ù×÷ËµÃ÷:|| 1:ÏÔÊ¾Êı¾İ || 2:²éÕÒÊı¾İ || 3:²åÈëÊı¾İ || 4:É¾³ıÊı¾İ || 5:¸üĞÂÊı¾İ || 0:ÍË³ö\n");
+    printf("æ“ä½œè¯´æ˜:|| 1:æ˜¾ç¤ºæ•°æ® || 2:æŸ¥æ‰¾æ•°æ® || 3:æ’å…¥æ•°æ® || 4:åˆ é™¤æ•°æ® || 5:æ›´æ–°æ•°æ® || 0:é€€å‡º\n");
     printf("\n");
 
     while (1)
     {
-        printf("ÇëÊäÈë²Ù×÷´úºÅ : ");
+        printf("è¯·è¾“å…¥æ“ä½œä»£å· : ");
         _flushall();
         op = getchar();
         if (op == '0' || op == '1' || op == '2' || op == '3' || op == '4' || op == '5')
         {
             if (op == '0')
             {
-                printf("ÍË³ö³É¹¦\n");
+                printf("é€€å‡ºæˆåŠŸ\n");
                 return;
             }
             break;
         }
         else
         {
-            printf("ÄúµÄÊäÈëÓĞÎó(ĞÅ²»ĞÅÎÒÅú¶·Äã)\n");
+            printf("æ‚¨çš„è¾“å…¥æœ‰è¯¯(ä¿¡ä¸ä¿¡æˆ‘æ‰¹æ–—ä½ )\n");
         }
     }
 
@@ -420,13 +415,14 @@ void opration(char *container[], int *count)
         switch (op)
         {
         case '1':
+            printf("\n");
             showData(container, count);
             break;
         case '2':
             findData(container, count);
             break;
         case '3':
-            InsertData(container, SIZE, count, value[insertNum]); //½«Êı×éµÄµÚ²åÈë´ÎÊı¸öµØÖ·´«¸øº¯ÊıInsertData
+            InsertData(container, SIZE, count, value[insertNum]); //å°†æ•°ç»„çš„ç¬¬æ’å…¥æ¬¡æ•°ä¸ªåœ°å€ä¼ ç»™å‡½æ•°InsertData
             insertNum++;
             break;
         case '4':
@@ -437,19 +433,19 @@ void opration(char *container[], int *count)
             updataNum++;
             break;
         default:
-            printf("ÇëÊäÈëºÏ·¨×Ö·û(ĞÅ²»ĞÅÎÒÅú¶·Äã)\n");
+            printf("è¯·è¾“å…¥åˆæ³•å­—ç¬¦(ä¿¡ä¸ä¿¡æˆ‘æ‰¹æ–—ä½ )\n");
             break;
         }
 
         printf("\n");
-        printf("²Ù×÷ËµÃ÷:|| 1:ÏÔÊ¾Êı¾İ || 2:²éÕÒÊı¾İ || 3:²åÈëÊı¾İ || 4:É¾³ıÊı¾İ || 5:¸üĞÂÊı¾İ || 0:ÍË³ö\n");
+        printf("æ“ä½œè¯´æ˜:|| 1:æ˜¾ç¤ºæ•°æ® || 2:æŸ¥æ‰¾æ•°æ® || 3:æ’å…¥æ•°æ® || 4:åˆ é™¤æ•°æ® || 5:æ›´æ–°æ•°æ® || 0:é€€å‡º\n");
         printf("\n");
-        printf("Çë¼ÌĞøÄúµÄ²Ù×÷ : ");
+        printf("è¯·ç»§ç»­æ‚¨çš„æ“ä½œ : ");
         _flushall();
         op = getchar();
         if (op == '0')
         {
-            printf("ÍË³ö³É¹¦\n");
+            printf("é€€å‡ºæˆåŠŸ\n");
         }
     }
 }
