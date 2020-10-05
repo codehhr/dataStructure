@@ -25,7 +25,7 @@ int main()
     char *container[SIZE];
     //input your code
     //加载数据并返回有效行数
-    count = readFile(container, SIZE, "C:\\Users\\18719\\Desktop\\dataStructure\\2016List2.csv");
+    count = readFile(container, SIZE, "2016List2.csv");
     if (count != -1) //读取成功，进一步操作
     {
         //清除输入输出流
@@ -156,11 +156,11 @@ void findData(char *container[], int *count)
     j = findSimple(container, count, str);
     if (j > 0)
     {
-        printf("查找成功:位置:%d 内容:%s\n", j, container[j - 1]);
+        printf("[查找成功] :位置:%d 内容:%s\n", j, container[j - 1]);
     }
     else
     {
-        printf("查找数据失败\n");
+        printf("[查找数据失败]\n");
     }
 }
 
@@ -183,7 +183,7 @@ int InsertSimple(char *container[], int size, int *count, int pos, char *value)
         //判断是否可以继续插入
         if (c >= size)
         {
-            printf("容器已满，不可继续插入\n");
+            printf("[容器已满，不可继续插入]\n");
             return 0;
         }
         else
@@ -214,7 +214,7 @@ void InsertData(char *container[], int size, int *count, char *value)
     char str[100];
     int pos;
     int result;
-    printf("请输入要插入的内容:");
+    printf("请输入要插入的内容]:");
     scanf("%s", value);
     while (1)
     {
@@ -233,12 +233,12 @@ void InsertData(char *container[], int size, int *count, char *value)
     result = InsertSimple(container, size, count, pos, value);
     if (result == 1)
     {
-        printf("插入成功\n");
+        printf("[插入成功]\n");
         *count = *count + 1; //行数加1
     }
     else
     {
-        printf("插入失败\n");
+        printf("[插入失败]\n");
     }
 }
 /*
@@ -256,7 +256,7 @@ int DeleteSimple(char *container[], int *count, int pos)
     {
         if (0 == *count)
         {
-            printf("数据已空，无法删除");
+            printf("[数据已空，无法删除]");
             return 0;
         }
         //如果是最后一行
@@ -302,12 +302,12 @@ void DeleteData(char *container[], int *count)
     result = DeleteSimple(container, count, pos);
     if (result == 1)
     {
-        printf("删除成功\n");
+        printf("[删除成功]\n");
         *count = *count - 1;
     }
     else
     {
-        printf("删除失败\n");
+        printf("[删除失败]\n");
     }
 }
 /*
@@ -363,11 +363,11 @@ void UpData(char *container[], int *count, char *value)
     result = upDataSimple(container, count, pos, value);
     if (result == 1)
     {
-        printf("更新成功\n");
+        printf("[更新成功]\n");
     }
     else
     {
-        printf("更新失败\n");
+        printf("[更新失败]\n");
     }
 }
 /*
@@ -387,7 +387,7 @@ void opration(char *container[], int *count)
     int updataNum = 0;
 
     printf("\n");
-    printf("操作说明:|| 1:显示数据 || 2:查找数据 || 3:插入数据 || 4:删除数据 || 5:更新数据 || 0:退出\n");
+    printf("=>操作说明:|| 1:显示数据 || 2:查找数据 || 3:插入数据 || 4:删除数据 || 5:更新数据 || 0:退出\n");
     printf("\n");
 
     while (1)
@@ -399,7 +399,7 @@ void opration(char *container[], int *count)
         {
             if (op == '0')
             {
-                printf("退出成功\n");
+                printf("[退出成功]\n");
                 return;
             }
             break;
@@ -438,14 +438,14 @@ void opration(char *container[], int *count)
         }
 
         printf("\n");
-        printf("操作说明:|| 1:显示数据 || 2:查找数据 || 3:插入数据 || 4:删除数据 || 5:更新数据 || 0:退出\n");
+        printf("=>操作说明:|| 1:显示数据 || 2:查找数据 || 3:插入数据 || 4:删除数据 || 5:更新数据 || 0:退出\n");
         printf("\n");
-        printf("请继续您的操作 : ");
+        printf("==>请继续您的操作 : ");
         _flushall();
         op = getchar();
         if (op == '0')
         {
-            printf("退出成功\n");
+            printf("[退出成功]\n");
         }
     }
 }
