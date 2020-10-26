@@ -39,12 +39,13 @@ int main()
 }
 
 /*
-    功能:文件读入
-    参数列表:
-            container:读入文件的容器，一个数组，数组中保存着指向每一行的内存地址
-            size:container容器的最大容量
-            fileName:文件路径
-    返回值:读取正常:读取的有效行数数量 读取失败:-1
+    功能：文件读入
+    参数列表：
+            container：读入文件的容器，一个数组，数组中保存着指向每一行的内存地址
+            size：container容器的最大容量
+            fileName：文件路径
+    返回值：读取正常：读取的有效行数数量 读取失败：-1
+
 */
 int readFile(char *container[], int size, char *fileName)
 {
@@ -84,10 +85,10 @@ int readFile(char *container[], int size, char *fileName)
 }
 /*
     功能:释放文件读入内存
-    参数:
+    参数：
         container:需要释放内存的数组
-        c:有效行数
-    返回值:无
+        c：数组的有效内容长度
+    返回值：无
 */
 void freeContainer(char *container[], int *count)
 {
@@ -101,11 +102,11 @@ void freeContainer(char *container[], int *count)
 }
 
 /*
-    功能:显示
-    参数:
+    功能：显示
+    参数：
         container:存放数据的数组
-        count: 有效行数
-    返回值:无
+        count:存放了多少行数据
+    返回值：无
 */
 void showData(char *container[], int *count)
 {
@@ -117,12 +118,12 @@ void showData(char *container[], int *count)
     }
 }
 /*
-    功能:匹配查找内容
-    参数:
+    功能：搜索
+    参数：
         container:存放数据的数组
-        count: 有效行数
+        count:数据有效长度
         value:要查找的值
-    返回值:0:查找失败，大于0返回查找到的在第几行
+    返回值：0：查找失败，大于0返回查找到的在第几行
 */
 int findSimple(char *container[], int *count, char *value)
 {
@@ -132,6 +133,7 @@ int findSimple(char *container[], int *count, char *value)
     while (j < *count)
     {
         p = strstr(container[j], value); //返回value内容到整个内容结束的内容
+        // if (p == container[j])
         if (p != NULL)
         {
             return j + 1;
@@ -141,38 +143,39 @@ int findSimple(char *container[], int *count, char *value)
     return 0;
 }
 /*
-    功能:查找
-    参数:
+    功能：查找
+    参数：
         container:存放数据的数组
-        count:有效行数
-    返回值:无
+        c:数组内容有效长度
+    返回值：无
 */
 void findData(char *container[], int *count)
 {
     char str[100];
     int j;
-    printf("请输入要查找的内容:");
+    printf("输入要查找的编码：");
     scanf("%s", str);
     j = findSimple(container, count, str);
     if (j > 0)
     {
-        printf("[查找成功] :位置:%d 内容:%s\n", j, container[j - 1]);
+        printf("查找成功：位置：%d 内容：%s\n", j, container[j - 1]);
     }
     else
     {
-        printf("[查找数据失败]\n");
+        printf("查找数据失败\n");
     }
 }
 
 /*
-    功能:插入
-    参数:
+    功能：插入
+    参数：
         container:存储数组
         size:数组最大长度
-        count:有效行数
+        count:内容有效长度
         pos:要插入的位置(行)
         value:要插入的内容
-    返回值:0:插入失败 1:成功
+    返回值：0:插入失败 1:成功
+
 */
 int InsertSimple(char *container[], int size, int *count, int pos, char *value)
 {
@@ -181,9 +184,9 @@ int InsertSimple(char *container[], int size, int *count, int pos, char *value)
     while (1)
     {
         //判断是否可以继续插入
-        if (c >= size)
+        if (c == size)
         {
-            printf("[容器已满，不可继续插入]\n");
+            printf("容器已满，不可继续插入\n");
             return 0;
         }
         else
@@ -202,28 +205,29 @@ int InsertSimple(char *container[], int size, int *count, int pos, char *value)
     }
 }
 /*
-    功能:进一步封装插入
-    参数:
+    功能：进一步封装插入
+    参数：
         container:存储数组
         size:数组最大长度
-        count:有效行数
-    返回值:无
+        count:内容有效长度
+    返回值：无
+
 */
 void InsertData(char *container[], int size, int *count, char *value)
 {
     char str[100];
     int pos;
     int result;
-    printf("请输入要插入的内容]:");
+    printf("请输入要插入的内容：");
     scanf("%s", value);
     while (1)
     {
-        printf("请输入要插入的行数:");
+        printf("请输入要插入的行数：");
         scanf("%s", str);
         pos = atoi(str);
         if (pos <= 0 || pos > (*count + 1))
         {
-            printf("您的输入不合法(信不信我批斗你)\n");
+            printf("您的输入不合法\n");
         }
         else
         {
@@ -233,22 +237,23 @@ void InsertData(char *container[], int size, int *count, char *value)
     result = InsertSimple(container, size, count, pos, value);
     if (result == 1)
     {
-        printf("[插入成功]\n");
+        printf("插入成功\n");
         *count = *count + 1; //行数加1
     }
     else
     {
-        printf("[插入失败]\n");
+        printf("插入失败\n");
     }
 }
 /*
-    功能:删除某一行
-    参数:
+    功能：删除某一行
+    参数：
         container:数据容器
         count:有效行数
         value:要更新的值
         pos:删除的位置
-    返回值:0:删除失败，1:删除成功
+    返回值：0：删除失败，1：删除成功
+
 */
 int DeleteSimple(char *container[], int *count, int pos)
 {
@@ -256,7 +261,7 @@ int DeleteSimple(char *container[], int *count, int pos)
     {
         if (0 == *count)
         {
-            printf("[数据已空，无法删除]");
+            printf("数据已空，无法删除");
             return 0;
         }
         //如果是最后一行
@@ -274,11 +279,11 @@ int DeleteSimple(char *container[], int *count, int pos)
     }
 }
 /*
-    功能:封装删除
-    参数:
+    功能：封装删除
+    参数：
         container:数据容器
         count:有效行数
-    返回值:无
+    返回值：无
 */
 void DeleteData(char *container[], int *count)
 {
@@ -287,12 +292,12 @@ void DeleteData(char *container[], int *count)
     int result; //删除返回值结果
     while (1)
     {
-        printf("请输入要删除的行数:");
+        printf("请输入要删除的行数：");
         scanf("%s", str);
         pos = atoi(str);
         if (pos <= 0 || pos > *count)
         {
-            printf("您的输入不合法(信不信我批斗你)\n");
+            printf("您的输入不合法\n");
         }
         else
         {
@@ -302,22 +307,22 @@ void DeleteData(char *container[], int *count)
     result = DeleteSimple(container, count, pos);
     if (result == 1)
     {
-        printf("[删除成功]\n");
+        printf("删除成功\n");
         *count = *count - 1;
     }
     else
     {
-        printf("[删除失败]\n");
+        printf("删除失败\n");
     }
 }
 /*
-    功能:更新
-    参数:
+    功能：更新
+    参数：
         container:数据容器
         count:有效行数
         pos:要跟新的行数
         value:更新的值
-    返回值:0:更新失败 1:更新成功
+    返回值：0：更新失败 1：更新成功
 */
 int upDataSimple(char *container[], int *count, int pos, char *value)
 {
@@ -332,28 +337,28 @@ int upDataSimple(char *container[], int *count, int pos, char *value)
     }
 }
 /*
-    功能:封装更新
-    参数:
+    功能：封装更新
+    参数：
         container:数据容器
         count:有效行数
         value:要更新的值的暂时空间
-    返回值:无
+    返回值：无
 */
 void UpData(char *container[], int *count, char *value)
 {
     char str[100];
     int pos;
     int result;
-    printf("请输入要更新的内容:");
+    printf("请输入要更新的内容：");
     scanf("%s", value);
     while (1)
     {
-        printf("请输入要更新的行数:");
+        printf("请输入要更新的行数：");
         scanf("%s", str);
         pos = atoi(str);
         if (pos <= 0 || pos > *count)
         {
-            printf("您的输入不合法(信不信我批斗你)\n");
+            printf("您的输入不合法\n");
         }
         else
         {
@@ -363,19 +368,20 @@ void UpData(char *container[], int *count, char *value)
     result = upDataSimple(container, count, pos, value);
     if (result == 1)
     {
-        printf("[更新成功]\n");
+        printf("更新成功\n");
     }
     else
     {
-        printf("[更新失败]\n");
+        printf("更新失败\n");
     }
 }
 /*
-    功能:操作
-    参数:
+    功能：操作
+    参数：
         container:数据容器
         count:有效行数
-    返回值:无
+
+    返回值：无
 */
 void opration(char *container[], int *count)
 {
@@ -386,27 +392,24 @@ void opration(char *container[], int *count)
     char updata[200][100];
     int updataNum = 0;
 
-    printf("\n");
-    printf("=>操作说明:|| 1:显示数据 || 2:查找数据 || 3:插入数据 || 4:删除数据 || 5:更新数据 || 0:退出\n");
-    printf("\n");
-
+    printf("操作说明：\n1:显示数据\n2:查找数据\n3:插入数据\n4:删除数据\n5:更新数据\n0:退出\n");
     while (1)
     {
-        printf("请输入操作代号 : ");
+        printf("请输入您的操作:");
         _flushall();
         op = getchar();
         if (op == '0' || op == '1' || op == '2' || op == '3' || op == '4' || op == '5')
         {
             if (op == '0')
             {
-                printf("[退出成功]\n");
+                printf("退出成功\n");
                 return;
             }
             break;
         }
         else
         {
-            printf("您的输入有误(信不信我批斗你)\n");
+            printf("您的输入有误\n");
         }
     }
 
@@ -415,7 +418,6 @@ void opration(char *container[], int *count)
         switch (op)
         {
         case '1':
-            printf("\n");
             showData(container, count);
             break;
         case '2':
@@ -433,19 +435,16 @@ void opration(char *container[], int *count)
             updataNum++;
             break;
         default:
-            printf("请输入合法字符(信不信我批斗你)\n");
+            printf("请输入合法字符\n");
             break;
         }
 
-        printf("\n");
-        printf("=>操作说明:|| 1:显示数据 || 2:查找数据 || 3:插入数据 || 4:删除数据 || 5:更新数据 || 0:退出\n");
-        printf("\n");
-        printf("==>请继续您的操作 : ");
+        printf("请继续您的操作:");
         _flushall();
         op = getchar();
         if (op == '0')
         {
-            printf("[退出成功]\n");
+            printf("退出成功\n");
         }
     }
 }
