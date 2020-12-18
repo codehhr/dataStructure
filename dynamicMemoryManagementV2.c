@@ -92,7 +92,7 @@ void firstFit()
             }
             else
             {
-                //将当前元素(i)后的信息表元素后移
+                //将当前元素(i)后的元素后移
                 for (j = MEMSIZE - 2; j > i; j--)
                 {
                     MemList[j + 1] = MemList[j];
@@ -143,6 +143,7 @@ void worstFit()
             if (MemList[i].Size > k)
             {
                 k = MemList[i].Size;
+                // 记录位置
                 j = i;
             }
         }
@@ -160,6 +161,7 @@ void worstFit()
     }
     else
     {
+        //将当前元素(i)后的元素后移
         for (j = MEMSIZE - 2; j > i; j--)
         {
             MemList[j + 1] = MemList[j];
@@ -216,7 +218,7 @@ void bestFit()
     }
     else
     {
-        //将i后的信息表元素后移
+        //将i后的元素后移
         for (j = MEMSIZE - 2; j > i; j--)
         {
             MemList[j + 1] = MemList[j];
@@ -246,8 +248,8 @@ void deleteBlock()
         MemList[number].status = 'f';          // 标记为空闲
         if (MemList[number + 1].status == 'f') // 若右侧空间为空则合并
         {
-            MemList[number].Size += MemList[number + 1].Size;                      //大小合并
-            for (i = number + 1; i < MEMSIZE - 1 && MemList[i].status != 'e'; i++) //
+            MemList[number].Size += MemList[number + 1].Size;                      // 大小合并
+            for (i = number + 1; i < MEMSIZE - 1 && MemList[i].status != 'e'; i++) // 当前元素之后的各元素都往后移
             {
                 if (i > 0)
                 {
@@ -259,7 +261,7 @@ void deleteBlock()
         if (number > 0 && MemList[number - 1].status == 'f')
         {
             MemList[number - 1].Size += MemList[number].Size;                  // 左侧与当前合并
-            for (i = number; i < MEMSIZE - 1 && MemList[i].status != 'e'; i++) //
+            for (i = number; i < MEMSIZE - 1 && MemList[i].status != 'e'; i++) // 当前元素之后的各元素都往后移
             {
                 MemList[i] = MemList[i + 1];
             }
