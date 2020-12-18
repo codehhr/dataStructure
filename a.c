@@ -77,7 +77,7 @@ void firstFit()
 {
     int i, j, flag = 0;
     int request;
-    printf("[最先适应算法] 请求分配内存的大小 : ");
+    printf("[最先适应算法]请求分配内存的大小 : ");
     scanf("%d", &request);
     // 遍历数组
     for (i = 0; i < MEMSIZE && MemList[i].status != 'e'; i++)
@@ -130,7 +130,7 @@ void firstFit()
 void worstFit()
 {
     int i, j, k, flag, request;
-    printf("[最坏适应算法] 请求分配内存的大小 : ");
+    printf("[最坏适应算法]请求分配内存的大小 : ");
     scanf("%d", &request);
     j = 0;
     flag = 0;
@@ -186,7 +186,7 @@ void worstFit()
 void bestFit()
 {
     int i, j, t, flag, request;
-    printf("[最佳适应算法] 请求分配内存的大小 : ");
+    printf("[最佳适应算法]请求分配内存的大小 : ");
     scanf("%d", &request);
     j = 0;
     flag = 0;
