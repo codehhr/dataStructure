@@ -23,7 +23,6 @@ MEMINFO MemList[MEMSIZE];
 // 显示内存状态
 void display()
 {
-    system("cls");
     int i, used = 0; // 记录可以使用的总空间量
     printf("\n+----------------------------------------------+\n");
     printf("| %5s%15s%15s%15s  |", "序号", "起始", "大小", "状态");
@@ -241,13 +240,14 @@ void deleteBlock()
     scanf("%d", &number);
     number -= 1; // 为方便操作,序号先换为索引
     // 输入的空间是使用的
+    system("cls");
     if (MemList[number].status == 'u')
     {
         MemList[number].status = 'f';          // 标记为空闲
         if (MemList[number + 1].status == 'f') // 若右侧空间为空则合并
         {
             MemList[number].Size += MemList[number + 1].Size;                      //大小合并
-            for (i = number + 1; i < MEMSIZE - 1 && MemList[i].status != 'e'; i++) //i后面的空间信息表元素后移
+            for (i = number + 1; i < MEMSIZE - 1 && MemList[i].status != 'e'; i++) //
             {
                 if (i > 0)
                 {
@@ -259,7 +259,7 @@ void deleteBlock()
         if (number > 0 && MemList[number - 1].status == 'f')
         {
             MemList[number - 1].Size += MemList[number].Size;                  // 左侧与当前合并
-            for (i = number; i < MEMSIZE - 1 && MemList[i].status != 'e'; i++) // i后面的空间信息表元素后移
+            for (i = number; i < MEMSIZE - 1 && MemList[i].status != 'e'; i++) //
             {
                 MemList[i] = MemList[i + 1];
             }
