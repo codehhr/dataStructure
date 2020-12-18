@@ -40,8 +40,8 @@ int flag = 0;
 // 函数声明
 void displayMenu();
 int setMemSize();
-void set_algorithm();
-void rearrange(int algorithm);
+void setAlgorithm();
+void reArrange(int algorithm);
 int new_process();
 int allocate_mem(struct allocatedBlock *ab);
 void kill_process();
@@ -49,9 +49,9 @@ int free_mem(struct allocatedBlock *ab);
 int dispose(struct allocatedBlock *free_ab);
 int display_mem_usage();
 allocatedBlock *find_process(int pid);
-void rearrange_FF();
-void rearrange_BF();
-void rearrange_WF();
+void reArrangeByFF();
+void reArrangeByBF();
+void reArrangeByWF();
 
 // 初始化空闲分区
 freeBlockType *initFreeBlock(int mem_size)
@@ -95,7 +95,7 @@ int setMemSize()
     int size;
     if (flag != 0)
     { // flag标志防止内存被再次设置
-        printf("不能再次设置内存大小 !\n");
+        printf("将不会再次设置内存大小 !\n");
         return 0;
     }
     printf("设置总内存大小 = ");
@@ -103,45 +103,45 @@ int setMemSize()
     if (size > 0)
     {
         memSize = size;
-        freeBlock->size = memSize; // 设置初始大小为 1024
+        freeBlock->size = memSize; // (原初始大小为 1024)
     }
     flag = 1;
     system("cls");
     return 1;
 }
 // 选择当前算法
-void set_algorithm()
+void setAlgorithm()
 {
     int algorithm;
-    printf("\t1 - First Fit\n");
-    printf("\t2 - Best Fit \n");
-    printf("\t3 - Worst Fit \n");
-    printf("Please input your choice : ");
+    printf("\t1 - 首次适应算法 \n");
+    printf("\t2 - 最佳适应算法 \n");
+    printf("\t3 - 最坏适应算法 \n");
+    printf("请输入代号 [1],[2],[3] : ");
     scanf("%d", &algorithm);
     if (algorithm >= 1 && algorithm <= 3)
         ma_algorithm = algorithm;
 
-    rearrange(ma_algorithm);
+    reArrange(ma_algorithm);
 }
 
 // 为每一个进程分配完内存以后重新按已选择的算法再次排序
-void rearrange(int algorithm)
+void reArrange(int algorithm)
 {
     switch (algorithm)
     {
     case MA_FF:
-        rearrange_FF();
+        reArrangeByFF();
         break;
     case MA_BF:
-        rearrange_BF();
+        reArrangeByBF();
         break;
     case MA_WF:
-        rearrange_WF();
+        reArrangeByWF();
         break;
     }
 }
-// 首次适应算法，按地址的大小由小到达排序
-void rearrange_FF()
+// 首次适应算法，按地址的大小由小到大排序
+void reArrangeByFF()
 {
     freeBlockType *temp, *p = NULL;
     freeBlockType *head = NULL;
@@ -198,7 +198,7 @@ void rearrange_FF()
 }
 
 // 最佳适应算法，按内存块的大小由小到大排序
-void rearrange_BF()
+void reArrangeByBF()
 {
     freeBlockType *temp, *p = NULL;
     freeBlockType *head = NULL;
@@ -250,7 +250,7 @@ void rearrange_BF()
 }
 
 // 最坏适应算法，按地址块的大小从大到小排序
-void rearrange_WF()
+void reArrangeByWF()
 {
     freeBlockType *temp, *p = NULL;
     freeBlockType *head = NULL;
@@ -480,7 +480,7 @@ int allocate_mem(struct allocatedBlock *ab)
                 fbt->size = fbt->size - request_size;
             }
         }
-        rearrange(ma_algorithm);
+        reArrange(ma_algorithm);
         return 1;
     }
     else
@@ -538,7 +538,7 @@ int free_mem(struct allocatedBlock *ab)
     fbt->size = ab->size;
     fbt->next = freeBlock;
     freeBlock = fbt;
-    rearrange_FF();
+    reArrangeByFF();
     pre->next = freeBlock;
     pre->size = 0;
     while (pre->next && (pre->next->start_addr != fbt->start_addr))
@@ -584,7 +584,7 @@ int free_mem(struct allocatedBlock *ab)
             free(fbt);
         }
     }
-    rearrange(algorithm);
+    reArrange(algorithm);
 
     return 1;
 }
@@ -689,7 +689,7 @@ int main()
             setMemSize();
             break;
         case '2':
-            set_algorithm();
+            setAlgorithm();
             flag = 1;
             break;
         case '3':
