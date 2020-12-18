@@ -1,716 +1,312 @@
 #include <stdio.h>
-#include <malloc.h>
-#include <stdlib.h>
 
-#define PROCESS_NAME_LEN 32   // 进程名字长度
-#define MIN_SLICE 10          // 最小碎片大小
-#define DEFAULT_MEM_SIZE 1024 // 默认的内存大小
-#define DEFAULT_MEM_START 0   // 默认起始地址
+// 定义内存的大小为 100
+#define MEMSIZE 100
 
-#define MA_FF 1 // 首次适应算法
-#define MA_BF 2 // 最佳适应算法
-#define MA_WF 3 // 最坏适应算法
+// 如果内存大小小于此值，将不再进行分割
+#define MINSIZE 2
 
-// 空闲分区的结构体
-typedef struct freeBlockType
+// 内存分区空间表结构
+typedef struct memoryInfomation
 {
-    int size;
-    int start_addr;
-    struct freeBlockType *next;
-} freeBlockType;
-freeBlockType *freeBlock;
+    // 起始地址
+    int start;
+    // 大小
+    int Size;
+    // 状态 f:空闲(free)  u:占用(used)  e:结束(end)
+    char status;
+} MEMINFO;
 
-// 已分配分区的结构体
-typedef struct allocatedBlock
+// 内存空间信息表
+MEMINFO MemList[MEMSIZE];
+
+// 显示内存状态
+void display()
 {
-    int pid;
-    int size;
-    int start_addr;
-    char process_name[PROCESS_NAME_LEN];
-    struct allocatedBlock *next;
-} allocatedBlock;
-
-struct allocatedBlock *allocatedBlockHead = NULL;
-
-int memSize = DEFAULT_MEM_SIZE;
-int ma_algorithm = MA_FF;
-static int pid = 0;
-int flag = 0;
-
-// 函数声明
-void displayMenu();
-int setMemSize();
-void setAlgorithm();
-void reArrange(int algorithm);
-int newProcess();
-int allocate_mem(struct allocatedBlock *ab);
-void kill_process();
-int free_mem(struct allocatedBlock *ab);
-int dispose(struct allocatedBlock *free_ab);
-int display_mem_usage();
-allocatedBlock *find_process(int pid);
-void reArrangeByFF();
-void reArrangeByBF();
-void reArrangeByWF();
-
-// 初始化空闲分区
-freeBlockType *initFreeBlock(int mem_size)
-{
-    freeBlockType *fb;
-    fb = (freeBlockType *)malloc(sizeof(freeBlockType));
-    if (fb == NULL)
-    {
-        printf("没有内存 !\n");
-        return NULL;
-    }
-    fb->size = mem_size;
-    fb->start_addr = DEFAULT_MEM_START;
-    fb->next = NULL;
-    return fb;
-}
-
-// 显示主菜单
-void displayMenu()
-{
-    printf("\n");
-    // printf("1 - Set memory size (default=%d)\n", DEFAULT_MEM_SIZE);
-    // printf("2 - Select memory allocation algorithm\n");
-    // printf("3 - New process \n");
-    // printf("4 - Terminate a process \n");
-    // printf("5 - Display memory usage \n");
-    // printf("0 - Exit\n");
-
-    printf("1 - 设置内存大小 ( 默认 = %d )\n", DEFAULT_MEM_SIZE);
-    printf("2 - 选择内存分配算法 \n");
-    printf("3 - 开启新进程 \n");
-    printf("4 - 终止一个进程 \n");
-    printf("5 - 显示内存使用率 \n");
-    printf("0 - 退出 \n");
-    printf("input : ");
-}
-
-// 设置总内存大小
-int setMemSize()
-{
-    int size;
-    if (flag != 0)
-    { // flag标志防止内存被再次设置
-        printf("将不会再次设置内存大小 !\n");
-        return 0;
-    }
-    printf("设置总内存大小 = ");
-    scanf("%d", &size);
-    if (size > 0)
-    {
-        memSize = size;
-        freeBlock->size = memSize; // (原初始大小为 1024)
-    }
-    flag = 1;
     system("cls");
-    return 1;
-}
-// 选择当前算法
-void setAlgorithm()
-{
-    int algorithm;
-    printf("\t1 - 首次适应算法 \n");
-    printf("\t2 - 最佳适应算法 \n");
-    printf("\t3 - 最坏适应算法 \n");
-    printf("请输入代号 [1],[2],[3] : ");
-    scanf("%d", &algorithm);
-    if (algorithm >= 1 && algorithm <= 3)
-        ma_algorithm = algorithm;
-
-    reArrange(ma_algorithm);
-}
-
-// 为每一个进程分配完内存以后重新按已选择的算法再次排序
-void reArrange(int algorithm)
-{
-    switch (algorithm)
+    int i, used = 0; // 记录可以使用的总空间量
+    printf("\n+----------------------------------------------+\n");
+    printf("| %5s%15s%15s%15s  |", "序号", "起始", "大小", "状态");
+    printf("\n------------------------------------------------\n");
+    for (i = 0; i < MEMSIZE && MemList[i].status != 'e'; i++)
     {
-    case MA_FF:
-        reArrangeByFF();
-        break;
-    case MA_BF:
-        reArrangeByBF();
-        break;
-    case MA_WF:
-        reArrangeByWF();
-        break;
+        if (MemList[i].status == 'u')
+        {
+            used += MemList[i].Size;
+        }
+        printf("| %4d%12d%14d%15s  |\n", i + 1, MemList[i].start, MemList[i].Size, MemList[i].status == 'u' ? "已用" : "空闲");
     }
-}
-// 首次适应算法，按地址的大小由小到大排序
-void reArrangeByFF()
-{
-    freeBlockType *temp, *p = NULL;
-    freeBlockType *head = NULL;
-    int current_min_addr;
-
-    if (freeBlock)
-    {
-        temp = freeBlock;
-        current_min_addr = freeBlock->start_addr;
-        while (temp->next != NULL)
-        {
-            if (temp->next->start_addr < current_min_addr)
-            {
-                current_min_addr = temp->next->start_addr;
-                p = temp;
-            }
-            temp = temp->next;
-        }
-        if (p != NULL)
-        {
-            temp = p->next;
-            p->next = p->next->next;
-            temp->next = freeBlock;
-            freeBlock = temp;
-        }
-        head = freeBlock;
-        p = head;
-        temp = head->next;
-        while (head->next != NULL)
-        {
-            current_min_addr = head->next->start_addr;
-            while (temp->next != NULL)
-            {
-                if (temp->next->start_addr < current_min_addr)
-                {
-                    current_min_addr = temp->next->start_addr;
-                    p = temp;
-                }
-                temp = temp->next;
-            }
-            if (p->next != head->next)
-            {
-                temp = p->next;
-                p->next = p->next->next;
-                temp->next = head->next;
-                head->next = temp;
-            }
-            head = head->next;
-            temp = head->next;
-            p = head;
-        }
-    }
-    return;
+    printf("\n------------------------------------------------\n");
+    printf("| 总内存:%-12d 已用:%-10d 空闲:%d  |", MEMSIZE, used, MEMSIZE - used);
+    printf("\n+----------------------------------------------+\n");
+    printf("\n\n");
 }
 
-// 最佳适应算法，按内存块的大小由小到大排序
-void reArrangeByBF()
+// 初始化所有变量
+void InitMemList()
 {
-    freeBlockType *temp, *p = NULL;
-    freeBlockType *head = NULL;
-    int current_min_size = freeBlock->size;
-
-    temp = freeBlock;
-    while (temp->next != NULL)
+    system("cls");
+    MEMINFO item = {0, 0, 'e'};
+    //初始化内存空间信息表
+    for (int i = 0; i < MEMSIZE; i++)
     {
-        if (temp->next->size < current_min_size)
-        {
-            current_min_size = temp->next->size;
-            p = temp;
-        }
-        temp = temp->next;
+        MemList[i] = item;
     }
-    if (p != NULL)
-    {
-        temp = p->next;
-        p->next = p->next->next;
-        temp->next = freeBlock;
-        freeBlock = temp;
-    }
-    head = freeBlock;
-    p = head;
-    temp = head->next;
-    while (head->next != NULL)
-    {
-        current_min_size = head->next->size;
-        while (temp->next != NULL)
-        {
-            if (temp->next->size < current_min_size)
-            {
-                current_min_size = temp->next->size;
-                p = temp;
-            }
-            temp = temp->next;
-        }
-        if (p->next != head->next)
-        {
-            temp = p;
-            p->next = p->next->next;
-            temp->next = head->next;
-            head->next = temp;
-        }
-        head = head->next;
-        temp = head->next;
-        p = head;
-    }
+    //起始地址为0
+    MemList[0].start = 0;
+    //空间初始为最大
+    MemList[0].Size = MEMSIZE;
+    //状态为空闲
+    MemList[0].status = 'f';
 }
 
-// 最坏适应算法，按地址块的大小从大到小排序
-void reArrangeByWF()
+// 最先适应算法
+
+/*算法原理分析：
+将空闲的内存区按其在储存空间中的起始地址递增的顺序排列，分配储存空间时，从空闲区链的始端开始查找，选择第一个满足要求的空闲区，而不管它究竟有多大
+
+优点:
+1.在释放内存分区的时候，如果有相邻的空白区就进行合并，使其成为一个较大的空白区
+2.此算法的实质是尽可能的利用储存器的低地址部分，在高地址部分则保留多的或较大的空白区，以后如果需要较大的空白区，就容易满足
+
+缺点：
+1.在低地址部分很快集中了许多非常小的空白区，因而在空白区分配时，搜索次数增加，影响工作效率。
+*/
+
+void firstFit()
 {
-    freeBlockType *temp, *p = NULL;
-    freeBlockType *head = NULL;
-    int current_max_size = freeBlock->size;
-    temp = freeBlock;
-    while (temp->next != NULL)
+    int i, j, flag = 0;
+    int request;
+    printf("[最先适应算法]请求分配内存的大小 : ");
+    scanf("%d", &request);
+    // 遍历数组
+    for (i = 0; i < MEMSIZE && MemList[i].status != 'e'; i++)
     {
-        if (temp->next->size > current_max_size)
+        // 满足所需要的大小,且是空闲空间
+        if (MemList[i].Size >= request && MemList[i].status == 'f')
         {
-            current_max_size = temp->next->size;
-            p = temp;
-        }
-        temp = temp->next;
-    }
-    if (p != NULL)
-    {
-        temp = p;
-        p->next = p->next->next;
-        temp->next = freeBlock;
-        freeBlock = temp;
-    }
-    head = freeBlock;
-    p = head;
-    temp = head->next;
-    while (head->next != NULL)
-    {
-        current_max_size = head->next->size;
-        while (temp->next != NULL)
-        {
-            if (temp->next->size > current_max_size)
+            // 如果小于等于规定的最小差则将整个空间分配出去
+            if (MemList[i].Size - request <= MINSIZE)
             {
-                current_max_size = temp->next->size;
-                p = temp;
-            }
-            temp = temp->next;
-        }
-        if (p->next != head->next)
-        {
-            temp = p->next;
-            p->next = p->next->next;
-            temp->next = head->next;
-            head->next = temp;
-        }
-        head = head->next;
-        temp = head->next;
-        p = head;
-    }
-    return;
-}
-
-// --------------------------------------------------
-
-// 创建一个新的进程
-int newProcess()
-{
-    struct allocatedBlock *ab;
-    int size;
-    int ret;
-    ab = (struct allocatedBlock *)malloc(sizeof(struct allocatedBlock));
-    if (!ab)
-        exit(-5);
-    ab->next = NULL;
-    pid++;
-    sprintf(ab->process_name, "进程-%02d", pid);
-    ab->pid = pid;
-    printf("请输入分配给 [ %s ] 的内存大小 : ", ab->process_name);
-    scanf("%d", &size);
-    if (size > 0)
-    {
-        ab->size = size;
-    }
-    // 分配内存
-    ret = allocate_mem(ab);
-    if ((ret == 1) && (allocatedBlockHead == NULL))
-    {
-        allocatedBlockHead = ab;
-        return 1;
-    }
-
-    else if (ret == 1)
-    {
-        ab->next = allocatedBlockHead;
-        allocatedBlockHead = ab;
-        return 2;
-    }
-    else if (ret == -1)
-    {
-        printf("Allocation fail\n");
-        pid--;
-        free(ab);
-        return -1;
-    }
-    return 3;
-}
-
-// 内存分配
-int allocate_mem(struct allocatedBlock *ab)
-{
-    freeBlockType *fbt, *pre;
-    freeBlockType *temp, *p, *p1;
-    allocatedBlock *q;
-    int request_size = ab->size;
-    int sum = 0;
-    int max;
-    fbt = pre = freeBlock;
-    if (fbt)
-    {
-        if (ma_algorithm == MA_WF)
-        {
-            if (fbt == NULL || fbt->size < request_size)
-                return -1;
-        }
-        else
-        {
-            while (fbt != NULL && fbt->size < request_size)
-            {
-                pre = fbt;
-                fbt = fbt->next;
-            }
-        }
-        if (fbt == NULL || fbt->size < request_size)
-        {
-            if (freeBlock->next != NULL)
-            {
-                sum = freeBlock->size;
-                temp = freeBlock->next;
-                while (temp != NULL)
-                {
-                    sum += temp->size;
-                    if (sum >= request_size)
-                        break;
-                    temp = temp->next;
-                }
-                if (temp == NULL)
-                    return -1;
-                else
-                {
-                    pre = freeBlock;
-                    max = freeBlock->start_addr;
-                    fbt = freeBlock;
-                    while (temp->next != pre)
-                    {
-                        if (max < pre->start_addr)
-                        {
-                            max = pre->start_addr;
-                            fbt = pre;
-                        }
-                        pre = pre->next;
-                    }
-                    pre = freeBlock;
-
-                    while (pre != temp->next)
-                    {
-                        q = allocatedBlockHead;
-                        p = freeBlock;
-
-                        while (q != NULL)
-                        {
-                            if (q->start_addr > pre->start_addr)
-                                q->start_addr = q->start_addr - pre->size;
-                            q = q->next;
-                        }
-                        while (p != NULL)
-                        {
-                            if (p->start_addr > pre->start_addr)
-                                p->start_addr = p->start_addr - pre->size;
-                            p = p->next;
-                        }
-
-                        pre = pre->next;
-                    }
-
-                    pre = freeBlock;
-                    while (pre != temp->next)
-                    {
-
-                        p1 = pre->next;
-                        if (pre == fbt)
-                            break;
-                        free(pre);
-                        pre = p1;
-                    }
-                    q = allocatedBlockHead;
-                    freeBlock = fbt;
-                    freeBlock->start_addr = q->start_addr + q->size;
-
-                    freeBlock->size = sum;
-                    freeBlock->next = temp->next;
-                    if (freeBlock->size - request_size < MIN_SLICE)
-                    {
-                        ab->size = freeBlock->size;
-                        ab->start_addr = freeBlock->start_addr;
-                        pre = freeBlock;
-                        freeBlock = freeBlock->next;
-                        free(pre);
-                    }
-                    else
-                    {
-                        ab->start_addr = freeBlock->start_addr;
-                        freeBlock->start_addr = freeBlock->start_addr + request_size;
-                        freeBlock->size = freeBlock->size - request_size;
-                    }
-                }
-            }
-            else
-                return -1;
-        }
-        else
-        {
-            if (fbt->size - request_size < MIN_SLICE)
-            {
-                ab->size = fbt->size;
-                ab->start_addr = fbt->start_addr;
-                if (pre->next == freeBlock)
-                {
-                    freeBlock = fbt->next;
-                }
-                else
-                {
-                    pre->next = fbt->next;
-                }
-                freeBlock = fbt->next;
-                free(fbt);
+                // 标记为已用 (used)
+                MemList[i].status = 'u';
             }
             else
             {
-                ab->start_addr = fbt->start_addr;
-                fbt->start_addr = fbt->start_addr + request_size;
-                fbt->size = fbt->size - request_size;
+                //将当前元素(i)后的信息表元素后移
+                for (j = MEMSIZE - 2; j > i; j--)
+                {
+                    MemList[j + 1] = MemList[j];
+                }
+
+                //将i分成两部分，使用低地址部分
+                MemList[i + 1].start = MemList[i].start + request;
+                MemList[i + 1].Size = MemList[i].Size - request;
+                MemList[i + 1].status = 'f';
+                MemList[i].Size = request;
+                MemList[i].status = 'u';
+                flag = 1;
+            }
+            break;
+        }
+    }
+    system("cls");
+    //没有找到符合分配的空间
+    if (flag != 1 || i == MEMSIZE || MemList[i].status == 'e')
+    {
+        printf("内存不足 ! !\n");
+    }
+    display();
+}
+/*最坏适应算法
+
+算法原理分析：
+扫描整个空闲分区或者链表，总是挑选一个最大的空闲分区来使用
+
+优点：可以使链表中的节点大小趋于均匀，产生碎片的几率最小，对中小作业有利，同时该算法的查找效率很高
+
+缺点：会使得储存器中缺乏大的空闲分区
+*/
+void worstFit()
+{
+    int i, j, k, flag, request;
+    printf("[最坏适应算法]请求分配内存的大小 : ");
+    scanf("%d", &request);
+    j = 0;
+    flag = 0;
+    k = 0;
+    //保存满足要求的最大空间
+    for (i = 0; i < MEMSIZE - 1 && MemList[i].status != 'e'; i++)
+    {
+        if (MemList[i].Size >= request && MemList[i].status == 'f')
+        {
+            flag = 1;
+            if (MemList[i].Size > k)
+            {
+                k = MemList[i].Size;
+                j = i;
             }
         }
-        reArrange(ma_algorithm);
-        return 1;
+    }
+    i = j;
+    system("cls");
+    if (flag == 0)
+    {
+        printf("内存不足 ! !\n");
+        j = i;
+    }
+    else if (MemList[i].Size - request <= MINSIZE) // 如果小于规定的最小差则将整个空间分配出去
+    {
+        MemList[i].status = 'u';
     }
     else
     {
-        printf("Free Memory already has been allocated over: ");
-        return -1;
-    }
-}
-
-// 选择杀死一个进程
-
-void kill_process()
-{
-    struct allocatedBlock *ab;
-    int pid;
-    printf("Kill Process, pid=");
-    scanf("%d", &pid);
-    ab = find_process(pid);
-    if (ab != NULL)
-    {
-        free_mem(ab);
-        dispose(ab);
-    }
-}
-// 找到要杀死的进程的标号
-allocatedBlock *find_process(int pid)
-{
-    allocatedBlock *abb;
-    abb = allocatedBlockHead;
-    if (abb->pid == pid)
-    {
-        return abb;
-    }
-    abb = allocatedBlockHead->next;
-    while (abb->next != NULL)
-    {
-        if (abb->pid == pid)
-            return abb;
-        abb = abb->next;
-    }
-    return abb;
-}
-
-// 释放杀死进程的内存块
-int free_mem(struct allocatedBlock *ab)
-{
-    int algorithm = ma_algorithm;
-    struct freeBlockType *fbt, *pre;
-    fbt = (struct freeBlockType *)malloc(sizeof(struct freeBlockType));
-    pre = (struct freeBlockType *)malloc(sizeof(struct freeBlockType));
-    if (!fbt)
-        return -1;
-
-    fbt->start_addr = ab->start_addr;
-    fbt->size = ab->size;
-    fbt->next = freeBlock;
-    freeBlock = fbt;
-    reArrangeByFF();
-    pre->next = freeBlock;
-    pre->size = 0;
-    while (pre->next && (pre->next->start_addr != fbt->start_addr))
-        pre = pre->next;
-    if (pre->size != 0 && fbt->next != NULL)
-    {
-        if (((pre->start_addr + pre->size) == fbt->start_addr) && ((fbt->start_addr + fbt->size) == fbt->next->start_addr))
+        for (j = MEMSIZE - 2; j > i; j--)
         {
-            pre->size = pre->size + fbt->size + fbt->next->size;
-            pre->next = fbt->next->next;
-            free(fbt->next);
-            free(fbt);
+            MemList[j + 1] = MemList[j];
         }
-        else if ((pre->start_addr + pre->size) == fbt->start_addr)
+        MemList[i + 1].start = MemList[i].start + request;
+        MemList[i + 1].Size = MemList[i].Size - request;
+        MemList[i + 1].status = 'f';
+        MemList[i].Size = request;
+        MemList[i].status = 'u';
+    }
+    display();
+}
+
+/*最佳适应算法
+
+算法原理分析：
+从全部空闲区中找出满足作业要求的，且大小最小的空闲分区的一种计算方法，这种方法能使得碎片尽量小，为适应此算法，空闲分区表中的空闲分区要按从小到大进行排序，自表头开始查找第一个满足要求的自由分区分配
+
+优点：能使得碎片尽量的小,保留了最大空闲区
+
+缺点：造成了许多小的空闲区
+*/
+void bestFit()
+{
+    int i, j, t, flag, request;
+    printf("[最佳适应算法]请求分配内存的大小 : ");
+    scanf("%d", &request);
+    j = 0;
+    flag = 0;
+    t = MEMSIZE;
+    //保存满足要求的最大空间
+    for (i = 0; i < MEMSIZE && MemList[i].status != 'e'; i++)
+    {
+        if (MemList[i].Size >= request && MemList[i].status == 'f')
         {
-            pre->size = pre->size + fbt->size;
-            pre->next = fbt->next;
-            free(fbt);
-        }
-        else if (fbt->start_addr + fbt->size == fbt->next->start_addr)
-        {
-            fbt->size = fbt->size + fbt->next->size;
-            fbt->next = fbt->next->next;
-            free(fbt->next);
+            flag = 1;
+            if (MemList[i].Size < t)
+            {
+                t = MemList[i].Size;
+                j = i;
+            }
         }
     }
-    else if ((pre->size == 0) && fbt->next)
+    i = j;
+    system("cls");
+    if (flag == 0)
     {
-        if ((fbt->start_addr + fbt->size) == fbt->next->start_addr)
+        printf("内存不足 ! !\n");
+        j = i;
+    }
+    else if (MemList[i].Size - request <= MINSIZE) // 如果小于规定的最小差则将整个空间分配出去
+    {
+        MemList[i].status = 'u';
+    }
+    else
+    {
+        //将i后的信息表元素后移
+        for (j = MEMSIZE - 2; j > i; j--)
         {
-            fbt->size = fbt->size + fbt->next->size;
-            fbt->next = fbt->next->next;
-            freeBlock = fbt;
-            free(fbt->next);
+            MemList[j + 1] = MemList[j];
+        }
+
+        //将i分成两部分，使用低地址部分
+        MemList[i + 1].start = MemList[i].start + request;
+        MemList[i + 1].Size = MemList[i].Size - request;
+        MemList[i + 1].status = 'f';
+        MemList[i].Size = request;
+        MemList[i].status = 'u';
+    }
+    display();
+}
+
+//释放一块内存
+void deleteBlock()
+{
+    int i, number;
+    printf("\n请输入你想关掉的进程序号 : ");
+    scanf("%d", &number);
+    number -= 1; // 为方便操作,序号先换为索引
+    // 输入的空间是使用的
+    if (MemList[number].status == 'u')
+    {
+        MemList[number].status = 'f';          // 标记为空闲
+        if (MemList[number + 1].status == 'f') // 若右侧空间为空则合并
+        {
+            MemList[number].Size += MemList[number + 1].Size;                      //大小合并
+            for (i = number + 1; i < MEMSIZE - 1 && MemList[i].status != 'e'; i++) //i后面的空间信息表元素后移
+            {
+                if (i > 0)
+                {
+                    MemList[i] = MemList[i + 1];
+                }
+            }
+        }
+        // 左测空间空闲则合并
+        if (number > 0 && MemList[number - 1].status == 'f')
+        {
+            MemList[number - 1].Size += MemList[number].Size;                  // 左侧与当前合并
+            for (i = number; i < MEMSIZE - 1 && MemList[i].status != 'e'; i++) // i后面的空间信息表元素后移
+            {
+                MemList[i] = MemList[i + 1];
+            }
         }
     }
-    else if (fbt->next == NULL)
+    else
     {
-        if ((pre->start_addr + pre->size) == fbt->start_addr)
-        {
-            pre->size = pre->size + fbt->size;
-            pre->next = fbt->next;
-            free(fbt);
-        }
+        printf("此序号没有被使用或者不存在\n");
     }
-    reArrange(algorithm);
-
-    return 1;
+    display();
 }
 
-// 销毁杀死进程的结点
-int dispose(struct allocatedBlock *free_ab)
-{
-    struct allocatedBlock *pre, *ab;
-
-    if (free_ab == allocatedBlockHead)
-    {
-        allocatedBlockHead = allocatedBlockHead->next;
-        free(free_ab);
-        return 1;
-    }
-    pre = allocatedBlockHead;
-    ab = allocatedBlockHead->next;
-    while (ab != free_ab)
-    {
-        pre = ab;
-        ab = ab->next;
-    }
-    pre->next = ab->next;
-    free(ab);
-    return 2;
-}
-
-// 显示内存使用情况
-
-int display_mem_usage()
-{
-    struct freeBlockType *fbt = freeBlock;
-    struct allocatedBlock *ab = allocatedBlockHead;
-    printf("----------------------------------------------------------\n");
-
-    if (fbt == NULL)
-    {
-        printf("Free Memory already used over !\n");
-    }
-    printf("----------------------------------------------------------\n");
-
-    if (fbt)
-    {
-        printf("Free Memory:\n");
-        printf("%20s %20s\n", " start_addr", " size");
-        while (fbt != NULL)
-        {
-            printf("%20d %20d\n", fbt->start_addr, fbt->size);
-            fbt = fbt->next;
-        }
-    }
-
-    printf("\nUsed Memory:\n");
-    printf("%10s %20s %10s %10s\n", "PID", "ProcessName", "start_addr", " size");
-    while (ab != NULL)
-    {
-        printf("%10d %20s %10d %10d\n", ab->pid, ab->process_name, ab->start_addr, ab->size);
-        ab = ab->next;
-    }
-    printf("----------------------------------------------------------\n");
-    return 0;
-}
-
-// 退出，销毁所有链表
-void do_exit()
-{
-    freeBlockType *temp;
-    allocatedBlock *temp1;
-    temp = freeBlock->next;
-    while (temp != NULL)
-    {
-        freeBlock->next = temp->next;
-        free(temp);
-        temp = freeBlock->next;
-    }
-    free(freeBlock);
-    temp1 = allocatedBlockHead->next;
-    while (temp1 != NULL)
-    {
-        allocatedBlockHead->next = temp1->next;
-        free(temp1);
-        temp1 = allocatedBlockHead->next;
-    }
-    free(allocatedBlockHead->next);
-}
-
-// 主函数
 int main()
 {
-    char choice;
-    pid = 0;
-    freeBlock = initFreeBlock(memSize);
+    int n;
+    InitMemList(); //变量初始化
     while (1)
     {
-        displayMenu();
-        fflush(stdin);
-
-        choice = getchar();
-        switch (choice)
+        printf("************************************************\n");
+        printf("\t1 - 使用 [首次适应算法] 分配一块新的内存\n");
+        printf("\t2 - 使用 [最好适应算法] 分配一块新的内存\n");
+        printf("\t3 - 使用 [最坏适应算法] 分配一块新的内存\n");
+        printf("\t4 - 回收一块内存\n");
+        printf("\t5 - 显示内存使用情况\n");
+        printf("\t0 - Exit \n");
+        printf("************************************************\n");
+        printf("input : ");
+        scanf("%d", &n);
+        switch (n)
         {
-        case '1':
-            setMemSize();
+        case 1:
+            firstFit(); // 最先适应算法
             break;
-        case '2':
-            setAlgorithm();
-            flag = 1;
+        case 2:
+            bestFit(); // 最佳适应算法
             break;
-        case '3':
-            newProcess();
-            flag = 1;
+        case 3:
+            worstFit(); // 最坏适应算法
             break;
-        case '4':
-            kill_process();
-            flag = 1;
+        case 4:
+            deleteBlock(); // 删除已经使用的空间
             break;
-        case '5':
-            display_mem_usage();
-            flag = 1;
+        case 5:
+            display(); // 显示内存分配情况
             break;
-        case '0':
-            do_exit();
+        case 0:
             exit(0);
-        default:
-            break;
         }
     }
     return 0;
