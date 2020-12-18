@@ -42,7 +42,7 @@ void displayMenu();
 int setMemSize();
 void setAlgorithm();
 void reArrange(int algorithm);
-int new_process();
+int newProcess();
 int allocate_mem(struct allocatedBlock *ab);
 void kill_process();
 int free_mem(struct allocatedBlock *ab);
@@ -300,8 +300,11 @@ void reArrangeByWF()
     }
     return;
 }
+
+// --------------------------------------------------
+
 // 创建一个新的进程
-int new_process()
+int newProcess()
 {
     struct allocatedBlock *ab;
     int size;
@@ -311,16 +314,15 @@ int new_process()
         exit(-5);
     ab->next = NULL;
     pid++;
-    sprintf(ab->process_name, "PROCESS-%02d", pid);
+    sprintf(ab->process_name, "进程-%02d", pid);
     ab->pid = pid;
-    printf("Memory for %s:", ab->process_name);
-    printf("Please input you want to allocate process' size : ");
+    printf("请输入分配给 [ %s ] 的内存大小 : ", ab->process_name);
     scanf("%d", &size);
     if (size > 0)
     {
-
         ab->size = size;
     }
+    // 分配内存
     ret = allocate_mem(ab);
     if ((ret == 1) && (allocatedBlockHead == NULL))
     {
@@ -693,7 +695,7 @@ int main()
             flag = 1;
             break;
         case '3':
-            new_process();
+            newProcess();
             flag = 1;
             break;
         case '4':

@@ -14,28 +14,29 @@
 
 struct mem_control
 {
-    int start;  //起始地址
-    int lenght; // 长度
-    struct mem_control *next;
+    int start;                // 起始地址
+    int lenght;               // 长度
+    struct mem_control *next; //
 };
 
+// 函数声明
 void init();
 void printToScreen();
 void memController();
 void allocateMem();
 void reclaimMem();
 
-struct mem_control *memEmpty;  //空闲分区队列
-struct mem_control *memUsed;   //使用分区队列
-struct mem_control *memChange; //释放分区队列
+struct mem_control *memEmpty;   //空闲分区
+struct mem_control *memUsed;    //使用分区
+struct mem_control *memRelease; //释放分区
 
 int main()
 {
     memEmpty = NULL;
     memUsed = NULL;
-    memChange = NULL;
+    memRelease = NULL;
+    printf("----------------------------------------\n");
     init();
-    printf("内存控制模拟\n");
     while (1)
     {
         memController();
@@ -46,13 +47,16 @@ int main()
 
 /*
 初始化空闲分区
-初始化一个空间，首地址为0，长度为10000
+初始化一个空间，首地址为0
 */
 void init()
 {
-    memEmpty = malloc(sizeof(struct mem_control));
+    int size;
+    memEmpty = (struct mem_control *)malloc(sizeof(struct mem_control));
     memEmpty->start = 0;
-    memEmpty->lenght = 10000;
+    printf("请输入总内存大小 : ");
+    scanf("%d", &size);
+    memEmpty->lenght = size;
     memEmpty->next = NULL;
 }
 
@@ -86,15 +90,16 @@ void printToScreen()
 void memController()
 {
     char select;
-    printf("本函数为进程控制函数\n");
-    printf("    1.分配内存\n");
-    printf("    2.回收内存\n");
-    printf("    3.无操作\n");
-    printf("    4.退出\n");
-    printf("请输入你的选择(1--4): ");
     do
     {
+        printf("本函数为进程控制函数\n");
+        printf("\t1 - 分配内存\n");
+        printf("\t2 - 回收内存\n");
+        printf("\t3 - 无操作\n");
+        printf("\t0 - 退出\n");
+        printf("请输入你的选择(1--4): ");
         select = getchar();
+        system("cls");
     } while (select != '1' && select != '2' && select != '3' && select != '4');
     switch (select)
     {
@@ -106,7 +111,7 @@ void memController()
         break;
     case '3':
         break;
-    case '4':
+    case '0':
         exit(0);
         break;
     default:
@@ -115,33 +120,38 @@ void memController()
 }
 
 /*
-分配内存，首次适应算法
+分配内存，采用首次适应算法
 */
 void allocateMem()
 {
-    printf("请输入要分配的大小\n");
     //输入要分配内存的大小
     char *tmpStr;
+    printf("请输入要分配的大小 : ");
+    scanf("%s", tmpStr);
     do
     {
+        printf("请输入要分配的大小 : ");
         scanf("%s", tmpStr);
-    } while (isdigit(tmpStr));
+    } while (isdigit(tmpStr) == 0);
+
+    // 转换为一个整数
     int tmplen = atoi(tmpStr);
     struct mem_control *test = memEmpty;
-    while (test != NULL && test->lenght < tmplen)
-    {
-        test = test->next;
-    }
     if (test == NULL)
     {
         printf("内存不足\n");
     }
     else
     {
+        while (test->lenght < tmplen)
+        {
+            test = test->next;
+        }
+
         //将分配的内存添加到已使用内存队列中
         if (memUsed == NULL) //判断已使用队列是否已有内存块
         {
-            memUsed = malloc(sizeof(struct mem_control));
+            memUsed = (struct mem_control *)malloc(sizeof(struct mem_control));
             memUsed->start = test->start;
             memUsed->lenght = tmplen;
             memUsed->next = NULL;
@@ -154,7 +164,7 @@ void allocateMem()
             {
                 test2 = test2->next;
             }
-            test2->next = malloc(sizeof(struct mem_control));
+            test2->next = (struct mem_control *)malloc(sizeof(struct mem_control));
             test2->next->start = test->start;
             test2->next->lenght = tmplen;
             test2->next->next = NULL;
@@ -208,7 +218,7 @@ void reclaimMem()
             //将要回收内存从已用内存队列移除
             if (memUsed == test) //判断是否为队首
             {
-                memChange = memUsed;
+                memRelease = memUsed;
                 memUsed = memUsed->next;
             }
             else //回收内存非队首
@@ -219,60 +229,60 @@ void reclaimMem()
                     test2 = test2->next;
                 }
                 test2->next = test->next;
-                memChange = test;
+                memRelease = test;
             }
             //将要回收内存添加到未使用内存队列
             if (memEmpty == NULL)
             {
-                memEmpty = memChange;
+                memEmpty = memRelease;
                 memEmpty->next = NULL;
-                memChange = NULL;
+                memRelease = NULL;
             }
-            else if (memChange->start < memEmpty->start) //未使用空间添加到队首
+            else if (memRelease->start < memEmpty->start) //未使用空间添加到队首
             {
-                if (memChange->start + memChange->lenght == memEmpty->start) //未使用空间可以向后合并
+                if (memRelease->start + memRelease->lenght == memEmpty->start) //未使用空间可以向后合并
                 {
-                    memEmpty->start = memChange->start;
-                    memEmpty->lenght += memChange->lenght;
-                    free(memChange);
-                    memChange = NULL;
+                    memEmpty->start = memRelease->start;
+                    memEmpty->lenght += memRelease->lenght;
+                    free(memRelease);
+                    memRelease = NULL;
                 }
                 else //未使用空间不可合并
                 {
-                    memChange->next = memEmpty;
-                    memEmpty = memChange;
-                    memChange = NULL;
+                    memRelease->next = memEmpty;
+                    memEmpty = memRelease;
+                    memRelease = NULL;
                 }
             }
             else
             {
                 struct mem_control *test3 = memEmpty;
-                while (test3->next != NULL && test3->next->start < memChange->start)
+                while (test3->next != NULL && test3->next->start < memRelease->start)
                 {
                     test3 = test3->next;
                 }
                 if (test3->next == NULL) //未使用空间添加到队尾
                 {
-                    if (test3->start + test3->lenght == memChange->start) //未使用空间可以向前合并
+                    if (test3->start + test3->lenght == memRelease->start) //未使用空间可以向前合并
                     {
-                        test3->lenght += memChange->lenght;
-                        free(memChange);
-                        memChange = NULL;
+                        test3->lenght += memRelease->lenght;
+                        free(memRelease);
+                        memRelease = NULL;
                     }
                     else //未使用空间不可合并
                     {
-                        test3->next = memChange;
-                        memChange->next = NULL;
-                        memChange = NULL;
+                        test3->next = memRelease;
+                        memRelease->next = NULL;
+                        memRelease = NULL;
                     }
                 }
                 else //添加到队列中间
                 {
-                    if (test3->start + test3->lenght == memChange->start) //未使用空间可以向前合并
+                    if (test3->start + test3->lenght == memRelease->start) //未使用空间可以向前合并
                     {
-                        test3->lenght += memChange->lenght;
-                        free(memChange);
-                        memChange = NULL;
+                        test3->lenght += memRelease->lenght;
+                        free(memRelease);
+                        memRelease = NULL;
                         if (test3->start + test3->lenght == test3->next->start) //未使用空间可以向后合并
                         {
                             test3->lenght += test3->next->lenght;
@@ -280,17 +290,17 @@ void reclaimMem()
                             free(test3->next);
                         }
                     }
-                    else if (memChange->start + memChange->lenght == test3->next->start) //未使用空间可以向后合并
+                    else if (memRelease->start + memRelease->lenght == test3->next->start) //未使用空间可以向后合并
                     {
-                        test3->next->start = memChange->start;
-                        test3->lenght += memChange->lenght;
-                        memChange = NULL;
+                        test3->next->start = memRelease->start;
+                        test3->lenght += memRelease->lenght;
+                        memRelease = NULL;
                     }
                     else
                     {
-                        memChange->next = test3->next;
-                        test3->next = memChange;
-                        memChange = NULL;
+                        memRelease->next = test3->next;
+                        test3->next = memRelease;
+                        memRelease = NULL;
                     }
                 }
             }
