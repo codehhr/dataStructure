@@ -20,6 +20,24 @@ typedef struct memoryInfomation
 // 内存空间信息表
 MEMINFO MemList[MEMSIZE];
 
+// 初始化所有变量
+void InitMemList()
+{
+    system("cls");
+    MEMINFO item = {0, 0, 'e'};
+    //初始化内存空间信息表
+    for (int i = 0; i < MEMSIZE; i++)
+    {
+        MemList[i] = item;
+    }
+    //起始地址为0
+    MemList[0].start = 0;
+    //空间初始为最大
+    MemList[0].Size = MEMSIZE;
+    //状态为空闲
+    MemList[0].status = 'f';
+}
+
 // 显示内存状态
 void display()
 {
@@ -39,24 +57,6 @@ void display()
     printf("| 总内存:%-12d 已用:%-10d 空闲:%d  |", MEMSIZE, used, MEMSIZE - used);
     printf("\n+----------------------------------------------+\n");
     printf("\n\n");
-}
-
-// 初始化所有变量
-void InitMemList()
-{
-    system("cls");
-    MEMINFO item = {0, 0, 'e'};
-    //初始化内存空间信息表
-    for (int i = 0; i < MEMSIZE; i++)
-    {
-        MemList[i] = item;
-    }
-    //起始地址为0
-    MemList[0].start = 0;
-    //空间初始为最大
-    MemList[0].Size = MEMSIZE;
-    //状态为空闲
-    MemList[0].status = 'f';
 }
 
 // 最先适应算法
