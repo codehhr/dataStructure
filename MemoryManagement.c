@@ -59,7 +59,7 @@ void display()
     printf("\n\n");
 }
 
-// 最先适应算法
+// 首次适应算法
 
 /*算法原理分析：
 将空闲的内存区按其在储存空间中的起始地址递增的顺序排列，分配储存空间时，从空闲区链的始端开始查找，选择第一个满足要求的空闲区，而不管它究竟有多大
@@ -114,63 +114,6 @@ void firstFit()
     if (flag != 1 || i == MEMSIZE || MemList[i].status == 'e')
     {
         printf("内存不足 ! !\n");
-    }
-    display();
-}
-/*最坏适应算法
-
-算法原理分析：
-扫描整个空闲分区或者链表，总是挑选一个最大的空闲分区来使用
-
-优点：可以使链表中的节点大小趋于均匀，产生碎片的几率最小，对中小作业有利，同时该算法的查找效率很高
-
-缺点：会使得储存器中缺乏大的空闲分区
-*/
-void worstFit()
-{
-    int i, j, k, flag, request;
-    printf("[最坏适应算法]请求分配内存的大小 : ");
-    scanf("%d", &request);
-    j = 0;
-    flag = 0;
-    k = 0;
-    //保存满足要求的最大空间
-    for (i = 0; i < MEMSIZE - 1 && MemList[i].status != 'e'; i++)
-    {
-        if (MemList[i].Size >= request && MemList[i].status == 'f')
-        {
-            flag = 1;
-            if (MemList[i].Size > k)
-            {
-                k = MemList[i].Size;
-                // 记录位置
-                j = i;
-            }
-        }
-    }
-    i = j;
-    system("cls");
-    if (flag == 0)
-    {
-        printf("内存不足 ! !\n");
-        j = i;
-    }
-    else if (MemList[i].Size - request <= MINSIZE) // 如果小于规定的最小差则将整个空间分配出去
-    {
-        MemList[i].status = 'u';
-    }
-    else
-    {
-        //将当前元素(i)后的元素后移
-        for (j = MEMSIZE - 2; j > i; j--)
-        {
-            MemList[j + 1] = MemList[j];
-        }
-        MemList[i + 1].start = MemList[i].start + request;
-        MemList[i + 1].Size = MemList[i].Size - request;
-        MemList[i + 1].status = 'f';
-        MemList[i].Size = request;
-        MemList[i].status = 'u';
     }
     display();
 }
@@ -233,6 +176,67 @@ void bestFit()
     }
     display();
 }
+
+// --------------------------添加部分(最坏适应算法)-----------------------------------
+
+/*最坏适应算法
+
+算法原理分析：
+扫描整个空闲分区或者链表，总是挑选一个最大的空闲分区来使用
+
+优点：可以使链表中的节点大小趋于均匀，产生碎片的几率最小，对中小作业有利，同时该算法的查找效率很高
+
+缺点：会使得储存器中缺乏大的空闲分区
+*/
+void worstFit()
+{
+    int i, j, k, flag, request;
+    printf("[最坏适应算法]请求分配内存的大小 : ");
+    scanf("%d", &request);
+    j = 0;
+    flag = 0;
+    k = 0;
+    //保存满足要求的最大空间
+    for (i = 0; i < MEMSIZE - 1 && MemList[i].status != 'e'; i++)
+    {
+        if (MemList[i].Size >= request && MemList[i].status == 'f')
+        {
+            flag = 1;
+            if (MemList[i].Size > k)
+            {
+                k = MemList[i].Size;
+                // 记录位置
+                j = i;
+            }
+        }
+    }
+    i = j;
+    system("cls");
+    if (flag == 0)
+    {
+        printf("内存不足 ! !\n");
+        j = i;
+    }
+    else if (MemList[i].Size - request <= MINSIZE) // 如果小于规定的最小差则将整个空间分配出去
+    {
+        MemList[i].status = 'u';
+    }
+    else
+    {
+        //将当前元素(i)后的元素后移
+        for (j = MEMSIZE - 2; j > i; j--)
+        {
+            MemList[j + 1] = MemList[j];
+        }
+        MemList[i + 1].start = MemList[i].start + request;
+        MemList[i + 1].Size = MemList[i].Size - request;
+        MemList[i + 1].status = 'f';
+        MemList[i].Size = request;
+        MemList[i].status = 'u';
+    }
+    display();
+}
+// ---------------------------------------------------------------
 
 //释放一块内存
 void deleteBlock()
